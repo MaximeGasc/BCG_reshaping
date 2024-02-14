@@ -17,6 +17,7 @@ def create_transaction_df(df):
         df.groupby(["client_id", "date_order"])
         .agg(
             nb_distinct_prod=("product_id", "nunique"),
+            store_id=("branch_id", "first"),
             total_sales_net=("sales_net", "sum"),
             order_channel=("order_channel", "first"),
             total_quantity=("quantity", "sum"),
@@ -33,6 +34,10 @@ def avg_nb_distinct_products_per_order(df_transac):
     )
     return df_client
 
+def count_stores(df_transac, df_features):
+    df_client = df_transac.groupby("client_id").agg(tot_nb_stores=("store_id", "nunique"))
+    df_features = pd.merge(df_features, df_client, on=["client_id"], how="left")
+    return df_features
 
 def count_orders(df_transac, df_features):
     df_client = df_transac.groupby("client_id").agg(nb_orders=("date_order", "count"))
@@ -104,6 +109,8 @@ def time_since_last_order(df_transac, df_features, end_date):
     return df_features
 
 
+
+
 def std_order_frequency(df_transac, df_features):
     df_client = df_transac.groupby("client_id").agg(
         std_order_freq=("date_order", "std")
@@ -124,6 +131,7 @@ def create_features(df, end_train_date):
 
     df_features = avg_nb_distinct_products_per_order(df_transac)
     df_features = count_orders(df_transac, df_features)
+    df_features = count_stores(df_transac, df_features)
     df_features = avg_frequency_orders(df_transac, df_features)
     df_features = total_sales(df_transac, df_features)
     df_features = average_basket(df_features)
