@@ -146,12 +146,12 @@ def def_temp_window(df, n_days=120):
    '''
    Call the feature generation function, define the temporal window of observation and compute the target
    '''
-    end_date = df.date_order.max()  - pd.Timedelta(days=120)
+   end_date = df.date_order.max()  - pd.Timedelta(days=120)
    
-    df_features = create_features(df, end_date)
+   df_features = create_features(df, end_date)
    
-    client_id_no_churn = df[df.date_order > end_date].client_id.to_numpy()
+   client_id_no_churn = df[df.date_order > end_date].client_id.to_numpy()
    
-    df_features['is_churn'] = df_features.client_id.isin(client_id_no_churn)
+   df_features['is_churn'] = df_features.client_id.isin(client_id_no_churn)
    
-    return df_features
+   return df_features
