@@ -34,10 +34,14 @@ def avg_nb_distinct_products_per_order(df_transac):
     )
     return df_client
 
+
 def count_stores(df_transac, df_features):
-    df_client = df_transac.groupby("client_id").agg(tot_nb_stores=("store_id", "nunique"))
+    df_client = df_transac.groupby("client_id").agg(
+        tot_nb_stores=("store_id", "nunique")
+    )
     df_features = pd.merge(df_features, df_client, on=["client_id"], how="left")
     return df_features
+
 
 def count_orders(df_transac, df_features):
     df_client = df_transac.groupby("client_id").agg(nb_orders=("date_order", "count"))
@@ -109,8 +113,6 @@ def time_since_last_order(df_transac, df_features, end_date):
     return df_features
 
 
-
-
 def std_order_frequency(df_transac, df_features):
     df_client = df_transac.groupby("client_id").agg(
         std_order_freq=("date_order", "std")
@@ -143,15 +145,18 @@ def create_features(df, end_train_date):
 
 
 def def_temp_window(df, n_days=120):
-   '''
-   Call the feature generation function, define the temporal window of observation and compute the target
-   '''
-   end_date = df.date_order.max()  - pd.Timedelta(days=120)
-   
-   df_features = create_features(df, end_date)
-   
-   client_id_no_churn = df[df.date_order > end_date].client_id.to_numpy()
-   
-   df_features['is_churn'] = df_features.client_id.isin(client_id_no_churn)
-   
-   return df_features
+    """
+    Call the feature generation function, define the temporal window of observation and compute the target
+    """
+
+    df.date_order = pd.to_datetime(df.date_order)
+
+    end_date = df.date_order.max() - pd.Timedelta(days=120)
+
+    df_features = create_features(df, end_date)
+
+    client_id_no_churn = df[df.date_order > end_date].client_id.to_numpy()
+
+    df_features["is_churn"] = ~(df_features.client_id.isin(client_id_no_churn))
+
+    return df_features
